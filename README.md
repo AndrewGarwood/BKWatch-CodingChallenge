@@ -17,7 +17,7 @@ names and addresses:
 
 The file formats are not documented, but you can deduce the formats by examing
 their contents. The challenge is to write a python script `challenge.py`,
-desgined to be run from the command line, that accepts a list of pathnames of
+designed to be run from the command line, that accepts a list of pathnames of
 files in any of the above formats, parses them, and writes a JSON-encoded list
 of the combined addresses to standard output, sorted by ZIP code in ascending order. You can assume
 that the the format of each file corresponds to its extension, as illustrated by

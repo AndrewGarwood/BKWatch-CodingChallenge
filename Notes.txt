@@ -1,0 +1,36 @@
+
+
+Preliminary Steps (that I hope are mostly correct):
+1. Forked repository from main
+2. Cloned repository to directory on my device.
+3. Installed 'Rainbow CSV' extension b/c colors are neat
+
+I have some initial thoughts.
+let's define pathnames to be of the form pathname/filename.ext where ext is the extension/filetype i.e. it's one of [txt, tsv, xml]
+Because we must be able to accept a list of pathnames, I must account for the user to input a list in different ways.
+one way is to have the pathnames be separated by a comma and space:
+pathname1, pathname2, pathname3
+a second way is to separate them by a space:
+pathname1 pathname2 pathname3
+third, if the user is particularly rude, they may not separate them at all:
+pathname1pathname2pathname3
+fourth, because this a python script, the user may be inclined to write the input as:
+[pathname1, pathname2, pathname3] or ['pathname1', 'pathname2', 'pathname3']
+
+Regardless, we must split the input into individual paths. I'm operating under
+the assumption that I will be using the input() function, which will return the
+user's input as a String. Therefore, we will use the split() function. 
+Concurrently, we will get rid of any superfluous characters such as apostrophes, 
+brackets, commas, and spaces. Therefore, my logic is to demarcate (either implicitly 
+or explicitly) different pathnames by the file extension type at the end of each path.
+i.e. we identify the 3 characters following the period at the end of the file.
+
+
+Let's make a file with a single test case that we will expand upon later.
+Here's the first: 
+
+
+  David Scherrep
+  12014 Cobblewood Lane North
+  DUVAL COUNTY
+  Jacksonville, Florida 32225
