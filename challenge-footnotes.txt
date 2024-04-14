@@ -1,7 +1,7 @@
-This file contains extended comments/thoughts/definitions about logic used in challenge.py
-This helps reinforce my knowledge.
+This file contains additional comments/thoughts/definitions about logic used in challenge.py
+
 A line in challenge.py with a comment of the form '# [index]' indicates that there 
-is more information about it in challenge-footnotes.txt
+is more information about it here (in challenge-footnotes.txt)
 
 [1] raw string literals and regular expressions (REs)
 pattern = r' ,|\s|(?=[\[\]])|(?<=[\[\]])'
