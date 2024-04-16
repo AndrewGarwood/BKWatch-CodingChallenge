@@ -27,7 +27,13 @@ Pretty printing::
         "6": 7
     }
 
-
+input3.tsv data:
+first	middle	last	organization	address	city	state	county	zip	zip4
+# also, if value in row is == 'N/A' then ignore/delete the value
+# or if the middle name column = N/M/N ""
+# some rows have the organization name in the last_name column and vice versa
+# must check both. check if last_name is an organization by seeing if it contains
+# LLC or Ltd or Inc. ?
 
 [1] raw string literals and regular expressions (REs) https://docs.python.org/3.11/library/re.html
 - A raw string treats the backslash character, '\', as a literal character, not an escape - helpful for parsing file paths.
