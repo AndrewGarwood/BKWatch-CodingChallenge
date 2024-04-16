@@ -3,9 +3,4 @@ This file contains additional comments/thoughts/definitions about logic used in 
 A line in challenge.py with a comment of the form '# [index]' indicates that there 
 is more information about it here (in challenge-footnotes.txt)
 
-[1] raw string literals and regular expressions (REs)
-pattern = r' ,|\s|(?=[\[\]])|(?<=[\[\]])'
-- A raw string treats the backslash character \ as a literal character.
-  This will be helpful because we are parsing file paths.
-- pattern contains 4 REs, separated by |
-- [] Used to indicate a set of characters. In a set: Characters can be listed individually, e.g. [amk] will match 'a', 'm', or 'k'
+[1] 

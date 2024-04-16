@@ -1,29 +1,62 @@
 
-
-Preliminary Steps (that I hope are mostly correct):
+Preliminary Steps:
 1. Forked repository from main
 2. Cloned repository to directory on my device.
 3. Installed 'Rainbow CSV' extension b/c colors are neat
 
-I have some initial thoughts.
-let's define pathnames to be of the form pathname/filename.ext where ext is the extension/filetype i.e. it's one of [txt, tsv, xml]
-Because we must be able to accept a list of pathnames, I must account for the user to input a list in different ways.
-one way is to have the pathnames be separated by a comma and space:
-pathname1, pathname2, pathname3
-a second way is to separate them by a space:
-pathname1 pathname2 pathname3
-third, if the user is particularly rude, they may not separate them at all:
-pathname1pathname2pathname3
-fourth, because this a python script, the user may be inclined to write the input as:
-[pathname1, pathname2, pathname3] or ['pathname1', 'pathname2', 'pathname3']
+Currently: Able to take in list of file paths
+Next Step:
+For each file, get its filetype
+  then call one of parse_xml(), parse_tsv(), parse_txt()
+  all of them return List[JSON]
+then merge sort each list. is it better to sort them individually first?
+list is sorted by zipcode in ascending order --->
+TODO:
+1. implement parse_tsv
+2. implement parse_txt
+3. implement parse_xml
+4. implement sorting thing
+5. handle edge cases and specification details
 
-Regardless, we must split the input into individual paths. I'm operating under
-the assumption that I will be using the input() function, which will return the
-user's input as a String. Therefore, we will use the split() function. 
-Concurrently, we will get rid of any superfluous characters such as apostrophes, 
-brackets, commas, and spaces. Therefore, my logic is to demarcate (either implicitly 
-or explicitly) different pathnames by the file extension type at the end of each path.
-i.e. we identify the 3 characters following the period at the end of the file.
+Pretty printing::
+
+    >>> import json
+    >>> print(json.dumps({'4': 5, '6': 7}, sort_keys=True, indent=4))
+    {
+        "4": 5,
+        "6": 7
+    }
+
+
+
+[1] raw string literals and regular expressions (REs) https://docs.python.org/3.11/library/re.html
+- A raw string treats the backslash character, '\', as a literal character, not an escape - helpful for parsing file paths.
+- r'RE1|RE2|RE3|RE4' pattern contains 4 REs, separated by |
+- - kinda works like the 'or' operator in boolean statements. also recall the syntax for 'or' in Java, ||
+- [] indicates a set of characters; "characters can be listed individually"(python docs)
+  try:
+    pathnames = ast.literal_eval(input_str)
+    if not isinstance(pathnames, list):
+      raise ValueError
+  except (SyntaxError, ValueError):
+    # If parsing fails, split the string manually
+    pattern = r'(?<=\.(?:xml|tsv|txt))(?=\s|$)(?!\w)'# (?=.)(?![$\w])'
+    pathnames = re.split(pattern, input_str)
+  
+  # Strip extraneous characters
+  pathnames = [p.strip("', []") for p in pathnames if p.strip()]
+  return pathnames
+
+import re
+m = re.search('(?<=abc)def', 'abcdef')
+m.group(0)
+'def'
+
+This example looks for a word following a hyphen:
+m = re.search(r'(?<=-)\w+', 'spam-egg')
+m.group(0)
+'egg'
+Changed in version 3.5: Added support for group references of fixed length.
 
 
 Let's make a file with a single test case that we will expand upon later.
