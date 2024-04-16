@@ -2,8 +2,6 @@ import re
 from typing import List
 
 def parse_pathnames(input_str: str) -> List:
-  files = []
-  pattern = r' ,|\s|(?=[\[\]])|(?<=[\[\]])' # [1]
 
 
   return files
