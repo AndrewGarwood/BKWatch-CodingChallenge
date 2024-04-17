@@ -4,12 +4,12 @@ import csv
 import json
 from typing import List
 
-# TODO: 
+# TODO: you know the thing
 #       Add error handling for invalid file formats
-#       clean up comments and docstrings
-#       clean up everything for PEP 8 b/c this sh unsightly
+#       clean up comments and docstrings and everything
+#       b/c this unsightly
 
-# PEP **8** Style Guide Notes: (will delete this later)
+# PEP **8** Style Guide Notes:
 # Limit all lines to a maximum of 79 characters.
 # For(docstrings or comments), limit to 72 characters.
 output_header = ['name', 'organization', 'address', 'city', 'state', 'county',
@@ -46,9 +46,7 @@ def parse_xml(filepath: str) -> List:
   return # list of JSON objects
 def get_name(row: List) -> str:
   first, middle, last, org = row[0], row[1], row[2], row[3]
-  name = ''
-  is_org = False
-
+  name, is_org = '', False
   if first and last:
     if middle != 'N/M/N':
       name = f'{first} {middle} {last}'
@@ -57,7 +55,7 @@ def get_name(row: List) -> str:
   elif org and org != 'N/A':
     is_org = True
     name = org
-  elif last and org == 'N/A':  # case when data is mismatched
+  elif last and org == 'N/A':  # case when columns mismatched
     is_org = True
     name = last
   return name, is_org
@@ -98,62 +96,3 @@ if __name__ == "__main__":
   input_str = input("Please enter a list of pathnames: ")
   pathnames = parse_pathnames(input_str)
   print(f'pathnames: {pathnames}')
-
-
-# The file formats are not documented, but you can deduce the formats by examing
-# their contents. The challenge is to write a python script `challenge.py`,
-# designed to be run from the command line, that accepts a list of pathnames of
-# files in any of the above formats, parses them, and writes a JSON-encoded list
-# of the combined addresses to standard output, sorted by ZIP code in ascending order. You can assume
-# that the the format of each file corresponds to its extension, as illustrated by
-# the above examples. Your submission should consist of a single file, without any 
-# supporting documents. The output should be a pretty-printed JSON array of JSON
-# objects, each having 5 or 6 properties, serialized in the given order:
-#
-# * `name`: The person's full name, if present, consisting of a list of one or more given names followed by the family name
-# * `organization`: The company or organization name, if present
-# * `street`: The street address, often just a house number followed by a direction indicator and a street name
-# * `city`: The city name
-# * `county:` The county name, if present
-# * `state`: The US state name or abbreviation
-# * `zip`: The ZIP code or ZIP+4, in the format 00000 or 00000-0000
-
-# A personal name or organization name will always be present, but not both.
-
-# Here is a sample output:
-
-# ```
-# [
-#   {
-#     "name": "Hilda Flores",
-#     "street": "1509 Alberbrook Pl",
-#     "city": "Garland",
-#     "county": "DALLAS",
-#     "state": "TX",
-#     "zip": "75040"
-#   },
-#   {
-#     "organization": "Central Trading Company Ltd.",
-#     "street": "1501 North Division Street",
-#     "city": "Plainfield",
-#     "state": "Illinois",
-#     "zip": "60544-3890"
-#   }
-# ]
-# ```
-
-# The script should
-
-# * Be well-organized and easy to understand
-# * Use only standard Python libraries
-# * Be compatible with Python 3.11
-# * Conform to [PEP 8](https://peps.python.org/pep-0008/)
-# * Provide a `--help` option
-# * Check for errors in the argument list
-# * Check the input files to make sure they conform to the formats expemplified by the sample files 
-# * Output a list of addresses only if no errors were discovered in the above two steps
-# * Write any error messages to stderr
-# * Exit with status `0` or `1` to indicate success or failure
-
-# > [!WARNING]
-# > Study the data carefully: it's not as easy as it looks.
