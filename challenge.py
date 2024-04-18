@@ -5,12 +5,12 @@ import xml.etree.ElementTree as ET
 import json
 from typing import List, Dict
 
-# TODO: 
+# TODO: you know the thing
 #       Add error handling for invalid file formats
-#       clean up comments and docstrings
-#       clean up everything for PEP 8 b/c this sh unsightly
+#       clean up comments and docstrings and everything
+#       b/c this unsightly
 
-# PEP **8** Style Guide Notes: (will delete this later)
+# PEP **8** Style Guide Notes:
 # Limit all lines to a maximum of 79 characters.
 # For(docstrings or comments), limit to 72 characters.
 # 4 space indentation
