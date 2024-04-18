@@ -22,15 +22,13 @@ xml_elements = ['NAME', 'COMPANY', 'STREET', 'CITY', 'STATE', 'POSTAL_CODE']
 xml_address = ['STREET', 'STREET_2', 'STREET_3']
 
 def parse_tsv(filepath: str) -> List:
-    result = []
+    tsv_data = []
     with open(filepath, 'r') as file:
         tsv_reader = csv.reader(file, delimiter="\t")   
         next(tsv_reader)  # skip the header row
         for row in tsv_reader:  # type(row) == list
             assert(row != [] and row != None)
-            print(f'row: {row}')  # who doesn't love print statements?
             row_data = {}
-
             row_name, is_org = get_name(row)
             if is_org: row_data['organization'] = row_name
             else: row_data['name'] = row_name
@@ -39,13 +37,26 @@ def parse_tsv(filepath: str) -> List:
                     row_data[key] = value     
         
             row_data['zip'] = handle_zip(zip=row[8], zip4=row[9])
-            result.append(row_data)
-            print(f'row_data:\n{json.dumps(row_data, sort_keys=False, indent=2)}')  
-        return result # list of JSON objects
+            tsv_data.append(row_data)
+            # print(f'row_data:\n{json.dumps(row_data, sort_keys=False, indent=2)}')  
+        return tsv_data # list of JSON objects
 
 def parse_txt(filepath: str) -> List:
-    return []  # list of JSON objects
-
+    txt_data = []
+    with open(filepath, 'r') as file:
+        file_data = file.read()
+        file_data.strip()
+        # make pattern fit within col79
+        address_pattern = r'(?P<name>.+)\n(?P<street>.+)\n(?:\n?(?P<county>[A-Z\s]+) COUNTY\n)?(?P<city>[^\d\n]+),\s*(?P<state>[A-Za-z]+),?\s*(?P<zip>\d{5}(?:-\d{4})?)'
+        
+        match_list = list(re.finditer(address_pattern, file_data))
+        for match in match_list:
+            address_dict = match.groupdict()
+            txt_data.append(address_dict)
+        for key in address_dict.keys():
+            address_dict[key] = address_dict[key].strip()
+        return txt_data
+    
 def parse_xml(filepath: str) -> List:
     xml_data = []
     with open(filepath, 'r') as file:
@@ -122,5 +133,5 @@ def parse_pathnames(input_str: str) -> List:
 
 if __name__ == "__main__":
     input_str = input("Please enter a list of pathnames: ")
-    pathnames = parse_pathnames(input_str)
-    print(f'pathnames: {pathnames}')
+    result = parse_pathnames(input_str)
+    print(f'result: {result}')
