@@ -107,7 +107,7 @@ def handle_zip(zip: str, zip4: str) -> str:
         return zip
 
 
-# could rename this to process_input or something more descriptive... maybe get_filepaths ?
+# rename this
 def parse_pathnames(input_str: str) -> List:
     """This is a docstring.
     """
