@@ -3,7 +3,7 @@ import ast
 import csv
 import xml.etree.ElementTree as ET
 import json
-from typing import List
+from typing import List, Dict
 
 # TODO: 
 #       Add error handling for invalid file formats
@@ -15,7 +15,12 @@ from typing import List
 # For(docstrings or comments), limit to 72 characters.
 # 4 space indentation
 tsv_headers = ['name', 'organization', 'street', 'city', 'state', 'county',
-                 'zip']
+               'zip'
+]
+xml_keys = ['name', 'organization', 'street', 'city', 'state', 'zip']
+xml_elements = ['NAME', 'COMPANY', 'STREET', 'CITY', 'STATE', 'POSTAL_CODE']
+xml_address = ['STREET', 'STREET_2', 'STREET_3']
+
 def parse_tsv(filepath: str) -> List:
     result = []
     with open(filepath, 'r') as file:
@@ -42,7 +47,28 @@ def parse_txt(filepath: str) -> List:
     return []  # list of JSON objects
 
 def parse_xml(filepath: str) -> List:
-    return []  # list of JSON objects
+    xml_data = []
+    with open(filepath, 'r') as file:
+        tree = ET.parse(file)
+        root = tree.getroot()
+        ent_list = root.findall(path='ENTITY/ENT')
+        for ent in ent_list:
+            xml_data.append(get_ent_data(ent, {}))
+    return xml_data
+
+def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
+    for key, element in zip(xml_keys, xml_elements):
+        value = ent.findtext(element).strip(' -')
+        if element == 'STREET':       
+            data['street'] = ' '.join([f'{ent.findtext(line)}' 
+                                       for line in xml_address]
+            ).strip()
+            pass
+        elif element == 'POSTAL_CODE':
+            data['zip'] = value.replace(' ', '')
+        else:
+            data[key] = value
+    return data
 
 def get_name(row: List):
     first, middle, last, org = row[0], row[1], row[2], row[3]
