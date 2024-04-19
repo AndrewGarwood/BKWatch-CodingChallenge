@@ -4,7 +4,6 @@ import csv
 import xml.etree.ElementTree as ET
 import json
 from typing import List, Dict
-from operator import methodcaller
 
 # TODO: you know the thing
 #       Add error handling for invalid file formats
