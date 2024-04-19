@@ -4,6 +4,7 @@ import csv
 import xml.etree.ElementTree as ET
 import json
 from typing import List, Dict
+from operator import methodcaller
 
 # TODO: you know the thing
 #       Add error handling for invalid file formats
@@ -14,51 +15,47 @@ from typing import List, Dict
 # Limit all lines to a maximum of 79 characters.
 # For(docstrings or comments), limit to 72 characters.
 # 4 space indentation
-tsv_headers = ['name', 'organization', 'street', 'city', 'state', 'county',
+tsv_columns = ['name', 'organization', 'street', 'city', 'state', 'county',
                'zip'
 ]
 xml_keys = ['name', 'organization', 'street', 'city', 'state', 'zip']
 xml_elements = ['NAME', 'COMPANY', 'STREET', 'CITY', 'STATE', 'POSTAL_CODE']
 xml_address = ['STREET', 'STREET_2', 'STREET_3']
 
-def parse_tsv(filepath: str) -> List:
-    tsv_data = []
+def parse_tsv(filepath: str, tsv_data: List) -> List:
     with open(filepath, 'r') as file:
         tsv_reader = csv.reader(file, delimiter="\t")   
-        next(tsv_reader)  # skip the header row
-        for row in tsv_reader:  # type(row) == list
-            assert(row != [] and row != None)
-            row_data = {}
-            row_name, is_org = get_name(row)
-            if is_org: row_data['organization'] = row_name
-            else: row_data['name'] = row_name
-            for key, value in zip(tsv_headers[2:6], row[4:8]):  # this ain't clean
-                if value != '' and value != 'N/A':
-                    row_data[key] = value     
-        
-            row_data['zip'] = handle_zip(zip=row[8], zip4=row[9])
-            tsv_data.append(row_data)
+        next(tsv_reader)  # skip tsv_columns row
+        for row in tsv_reader:  # row is list w/ len=10    
+            if (row is not None and len(row) > 0):
+                row_data = {}
+                row_name, is_org = get_name(row)
+                if is_org: row_data['organization'] = row_name
+                else: row_data['name'] = row_name
+                for key, value in zip(tsv_columns[2:6], row[4:8]):  # this ain't clean
+                    if (len(value) > 0 and value != 'N/A'):
+                        row_data[key] = value     
+            
+                row_data['zip'] = get_zip(zip=row[8], zip4=row[9])
+                tsv_data.append(row_data)
             # print(f'row_data:\n{json.dumps(row_data, sort_keys=False, indent=2)}')  
         return tsv_data # list of JSON objects
 
-def parse_txt(filepath: str) -> List:
-    txt_data = []
+def parse_txt(filepath: str, txt_data: List) -> List:
     with open(filepath, 'r') as file:
-        file_data = file.read()
-        file_data.strip()
+        file_data = file.read().strip()
         # make pattern fit within col79
         address_pattern = r'(?P<name>.+)\n(?P<street>.+)\n(?:\n?(?P<county>[A-Z\s]+) COUNTY\n)?(?P<city>[^\d\n]+),\s*(?P<state>[A-Za-z]+),?\s*(?P<zip>\d{5}(?:-\d{4})?)'
-        
         match_list = list(re.finditer(address_pattern, file_data))
         for match in match_list:
             address_dict = match.groupdict()
+            for key in address_dict.keys():
+                address_dict[key] = address_dict[key].strip()
             txt_data.append(address_dict)
-        for key in address_dict.keys():
-            address_dict[key] = address_dict[key].strip()
+        
         return txt_data
     
-def parse_xml(filepath: str) -> List:
-    xml_data = []
+def parse_xml(filepath: str, xml_data: List) -> List:
     with open(filepath, 'r') as file:
         tree = ET.parse(file)
         root = tree.getroot()
@@ -77,7 +74,7 @@ def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
             pass
         elif element == 'POSTAL_CODE':
             data['zip'] = value.replace(' ', '')
-        else:
+        elif len(value) > 0:
             data[key] = value
     return data
 
@@ -97,41 +94,59 @@ def get_name(row: List):
         is_org = True
         name = last
     
-    return name, is_org  # type: ignore
+    return name, is_org
 
-def handle_zip(zip: str, zip4: str) -> str:
-    if zip4 and zip4 != '':
-        # could check len(zip4) == 4 and is soley digits
+def get_zip(zip: str, zip4: str) -> str:
+    if zip4:
         return f'{zip}-{zip4}'
-    else:  # zip4 == '':
+    else:
         return zip
 
-
-# rename this
-def parse_pathnames(input_str: str) -> List:
-    """This is a docstring.
-    """
-    
-    try:  # check if input string is in list format
-        pathnames = ast.literal_eval(input_str)
-        if not isinstance(pathnames, list):
+def parse_paths(input_str: str) -> List:
+    try:  # check if input string is in list format.. maybe also see if adding brackets to ends results in list
+        paths = ast.literal_eval(input_str)
+        if not isinstance(paths, list):
             raise ValueError
     except (SyntaxError, ValueError):  # else split the string manually
-        pattern = r'(?<=\.(?:xml|tsv|txt))(?=\s|$)(?!\w)'
-        pathnames = re.split(pattern, input_str) 
+        pattern = r'(?<=\.(?:xml|tsv|txt)),?\s*(?=\w)'  # TODO document this
+        paths = re.split(pattern, input_str) 
     # Strip extraneous characters that the user may have typed
-    pathnames = [p.strip("', []") for p in pathnames if p.strip()]
+    # make type(paths)=set so no duplicate files
+    paths = [p.strip("', []") for p in paths if p.strip()]
+    return paths
 
-    tsv_data, txt_data, xml_data = [], [], []
-    for p in pathnames:
-        ext = p[-3:].lower()  # last 3 characters = (file extension)
-        if ext == "tsv": tsv_data.extend(parse_tsv(filepath=p))
-        elif ext == "txt": txt_data.extend(parse_txt(filepath=p))
-        elif ext == "xml": xml_data.extend(parse_xml(filepath=p))
-    # TODO combine/sort the data
-    return pathnames
+def get_filedata_from_paths(path_list: List, sort_data: bool):
+    xml_data, tsv_data, txt_data, all_data = [], [], [], []
+    for p in path_list:
+        ext = p[-3:].lower()  # assuming len(file extension) = 3; add check for valid file type
+        if ext == "xml":
+            xml_data = parse_xml(filepath=p, xml_data=xml_data)
+        elif ext == "tsv":
+            tsv_data = parse_tsv(filepath=p, tsv_data=tsv_data)
+        elif ext == "txt":
+            txt_data = parse_txt(filepath=p, txt_data=txt_data)
+
+    all_data.extend(xml_data)
+    all_data.extend(tsv_data)
+    all_data.extend(txt_data)
+
+    if sort_data:
+        all_data = sorted_data(all_data)
+    return all_data
+
+def sorted_data(data: List[Dict]):  # could add parameter to abstract/generalize for keys other than zip code
+    return sorted(data, key=sorting_key) 
+
+def extract_zip(address: Dict):
+  zip_code = address.get('zip')  
+  return zip_code.replace('-', '')  
+
+def sorting_key(address: Dict):
+  print(type(address))
+  return extract_zip(address)
 
 if __name__ == "__main__":
-    input_str = input("Please enter a list of pathnames: ")
-    result = parse_pathnames(input_str)
-    print(f'result: {result}')
+    input_str = input("Please enter a list of paths: ")
+    paths = parse_paths(input_str)
+    filedata = get_filedata_from_paths(path_list=paths, sort_data=True)
+    print(json.dumps(filedata, indent=2))
