@@ -65,7 +65,7 @@ The script should
 * Conform to [PEP 8](https://peps.python.org/pep-0008/)
 * Provide a `--help` option
 * Check for errors in the argument list
-* Check the input files to make sure they conform to the formats expemplified by the sample files 
+* Check the input files to make sure they conform to the formats exemplified by the sample files 
 * Output a list of addresses only if no errors were discovered in the above two steps
 * Write any error messages to stderr
 * Exit with status `0` or `1` to indicate success or failure
