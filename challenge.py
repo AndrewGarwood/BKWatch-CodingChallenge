@@ -8,8 +8,7 @@ from typing import List, Dict
 
 # TODO: you know the thing
 #       Add error handling for invalid file formats
-#       make sure can handle input w/ entire filepaths, not just file name
-#       clean up everything
+#       clean up
 
 # PEP **8** Style Guide Notes:
 # Limit all lines to a maximum of 79 characters.
@@ -39,10 +38,12 @@ def parse_tsv(filepath: str, tsv_data: List) -> List:
             if (row is not None and row):  
                 row_data = {}
                 row_name, is_org = get_name(row)
-                if is_org: row_data['organization'] = row_name
-                else: row_data['name'] = row_name
-                for key, value in zip(tsv_columns[2:6], row[4:8]):
-                    if (value and value != 'N/A'):
+                if is_org:
+                  row_data['organization'] = row_name
+                else:
+                  row_data['name'] = row_name
+                for key, value in zip(tsv_columns[2:6], row[4:8]):  # this ain't clean
+                    if (len(value) > 0 and value != 'N/A'):
                         row_data[key] = value     
                 row_data['zip'] = get_zip(zip=row[8], zip4=row[9])
                 tsv_data.append(row_data)
@@ -63,11 +64,9 @@ def parse_txt(filepath: str, txt_data: List) -> List:
         for match in match_list:
             address_dict = match.groupdict()
             for key in address_dict.keys():
-                if (key and address_dict[key]):
-                    address_dict[key] = address_dict[key].strip()
-            if address_dict.get('county') is None:
-                del address_dict['county']
-            txt_data.append(address_dict)     
+              if address_dict[key] is not None:
+                address_dict[key] = address_dict[key].strip()
+            txt_data.append(address_dict)       
         return txt_data
 
 def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
