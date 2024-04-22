@@ -7,9 +7,7 @@ from typing import List, Dict
 
 # TODO: you know the thing
 #       Add error handling for invalid file formats
-#       make sure can handle input w/ entire filepaths, not just file name
-#       clean up comments and docstrings and everything
-#       b/c this unsightly
+#       clean up
 
 # PEP **8** Style Guide Notes:
 # Limit all lines to a maximum of 79 characters.
@@ -39,8 +37,10 @@ def parse_tsv(filepath: str, tsv_data: List) -> List:
             if (row is not None and len(row) > 0):
                 row_data = {}
                 row_name, is_org = get_name(row)
-                if is_org: row_data['organization'] = row_name
-                else: row_data['name'] = row_name
+                if is_org:
+                  row_data['organization'] = row_name
+                else:
+                  row_data['name'] = row_name
                 for key, value in zip(tsv_columns[2:6], row[4:8]):  # this ain't clean
                     if (len(value) > 0 and value != 'N/A'):
                         row_data[key] = value     
@@ -63,6 +63,7 @@ def parse_txt(filepath: str, txt_data: List) -> List:
         for match in match_list:
             address_dict = match.groupdict()
             for key in address_dict.keys():
+              if address_dict[key] is not None:
                 address_dict[key] = address_dict[key].strip()
             txt_data.append(address_dict)       
         return txt_data
