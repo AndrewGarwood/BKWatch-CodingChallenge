@@ -1,19 +1,19 @@
 import re
-import ast
+import argparse
 import csv
 import xml.etree.ElementTree as ET
 import json
+import ast
 from typing import List, Dict
 
 # TODO: you know the thing
 #       Add error handling for invalid file formats
 #       make sure can handle input w/ entire filepaths, not just file name
-#       clean up comments and docstrings and everything
-#       b/c this unsightly
+#       clean up everything
 
 # PEP **8** Style Guide Notes:
 # Limit all lines to a maximum of 79 characters.
-# For(docstrings or comments), limit to 72 characters.
+# docstrings or comments limit to 72 characters.
 # 4 space indentation
 tsv_columns = ['name', 'organization', 'street', 'city', 'state', 'county',
                'zip'
@@ -35,23 +35,23 @@ def parse_tsv(filepath: str, tsv_data: List) -> List:
     with open(filepath, 'r') as file:
         tsv_reader = csv.reader(file, delimiter="\t")   
         next(tsv_reader)  # skip tsv_columns row
-        for row in tsv_reader:  # row is list w/ len=10    
-            if (row is not None and len(row) > 0):
+        for row in tsv_reader:  # row is list w/ len=10  
+            if (row is not None and row):  
                 row_data = {}
                 row_name, is_org = get_name(row)
                 if is_org: row_data['organization'] = row_name
                 else: row_data['name'] = row_name
-                for key, value in zip(tsv_columns[2:6], row[4:8]):  # this ain't clean
-                    if (len(value) > 0 and value != 'N/A'):
+                for key, value in zip(tsv_columns[2:6], row[4:8]):
+                    if (value and value != 'N/A'):
                         row_data[key] = value     
                 row_data['zip'] = get_zip(zip=row[8], zip4=row[9])
                 tsv_data.append(row_data)
-            # print(f'row_data:\n{json.dumps(row_data, sort_keys=False, indent=2)}')  
+            
         return tsv_data # list of JSON objects
 
 def parse_txt(filepath: str, txt_data: List) -> List:
     with open(filepath, 'r') as file:
-        file_data = file.read().strip()
+        file_data = file.read().strip()  
         address_pattern = (
             r'(?P<name>.+)\n'
             r'(?P<street>.+)\n'
@@ -63,8 +63,11 @@ def parse_txt(filepath: str, txt_data: List) -> List:
         for match in match_list:
             address_dict = match.groupdict()
             for key in address_dict.keys():
-                address_dict[key] = address_dict[key].strip()
-            txt_data.append(address_dict)       
+                if (key and address_dict[key]):
+                    address_dict[key] = address_dict[key].strip()
+            if address_dict.get('county') is None:
+                del address_dict['county']
+            txt_data.append(address_dict)     
         return txt_data
 
 def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
@@ -77,14 +80,15 @@ def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
             pass
         elif element == 'POSTAL_CODE':
             data['zip'] = value.replace(' ', '')
-        elif len(value) > 0:
+        elif value:  #len(value) > 0:
             data[key] = value
     return data
 
 def get_name(row: List):
     first, middle, last, org = row[0], row[1], row[2], row[3]
     name, is_org = '', False
-    if first and last:  # assuming existence of first+last always corresponds to a person
+    # assuming existence of first+last always corresponds to a person
+    if first and last:
         if middle != 'N/M/N':
             name = f'{first} {middle} {last}'
         else:
@@ -92,7 +96,7 @@ def get_name(row: List):
     elif org and org != 'N/A':
         is_org = True
         name = org
-    elif last and org == 'N/A':  # case when data is mismatched
+    elif last and org == 'N/A':  # if org and last name data mismatched
         is_org = True
         name = last
     return name, is_org
@@ -103,7 +107,7 @@ def get_zip(zip: str, zip4: str) -> str:
     else:
         return zip
 
-def sorted_data(data: List[Dict]):  # could add parameter to abstract/generalize for keys other than zip code
+def sorted_data(data: List[Dict]):
     return sorted(data, key=sorting_key) 
 
 def extract_zip(address: Dict):
@@ -134,7 +138,7 @@ def validate_file_extensions(paths: List[str]):
     return paths
 
 def parse_paths(input_str: str) -> List[str]:
-    try:  # check if input string is in list format.. maybe also see if adding brackets to ends results in list
+    try:  # check if input string is in list format
         paths = ast.literal_eval(input_str)
         if not isinstance(paths, list):
             raise ValueError
@@ -151,11 +155,20 @@ def parse_paths(input_str: str) -> List[str]:
     return paths
 
 if __name__ == "__main__":
-    input_str = input("Please enter a list of paths: ")
+    # main()
+    parser = argparse.ArgumentParser(description='Process files from paths.')
+    # parser.add_argument('--help', action='help', help='Show this help message and exit')
+    input_str = input("Please enter a list of path(s): ")
     paths = parse_paths(input_str)
+    # validate_file_extensions(paths)
     filedata = get_filedata_from_paths(path_list=paths, sort_data=True)
     print(json.dumps(filedata, indent=2))
 
-    # input_str = input('The following file extensions are valid: .xml, .tsv, .txt\n' \
-    #                   'Please enter a list of file paths: '
-    # )
+
+# TODO:
+# * Provide a `--help` option
+# * Check for errors in the argument list
+# * Check the input files to make sure they conform to the formats exemplified by the sample files 
+# * Output a list of addresses only if no errors were discovered in the above two steps
+# * Write any error messages to stderr
+# * Exit with status `0` or `1` to indicate success or failure
