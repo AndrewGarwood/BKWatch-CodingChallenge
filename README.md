@@ -1,4 +1,6 @@
-# BankruptcyWatch Coding Challenge
+# NOTE: I'm moving on to another project
+
+## BankruptcyWatch Coding Challenge
 
 ## Goal
 
@@ -37,7 +39,7 @@ A personal name or organization name will always be present, but not both.
 
 Here is a sample output:
 
-```
+``` JSON
 [
   {
     "name": "Hilda Flores",

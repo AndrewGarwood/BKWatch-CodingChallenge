@@ -1,9 +1,10 @@
-import re
 import argparse
-import csv
-import xml.etree.ElementTree as ET
-import json
 import ast
+import csv
+import json
+import re
+import sys
+import xml.etree.ElementTree as ET
 from typing import List, Dict
 
 # TODO: you know the thing
@@ -14,6 +15,7 @@ from typing import List, Dict
 # Limit all lines to a maximum of 79 characters.
 # docstrings or comments limit to 72 characters.
 # 4 space indentation
+target_extensions = ['xml', 'tsv', 'txt']
 tsv_columns = ['name', 'organization', 'street', 'city', 'state', 'county',
                'zip'
 ]
@@ -69,6 +71,7 @@ def parse_txt(filepath: str, txt_data: List) -> List:
             txt_data.append(address_dict)       
         return txt_data
 
+# Used in parse_xml
 def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
     for key, element in zip(xml_keys, xml_elements):
         value = ent.findtext(element).strip(' -')
@@ -83,6 +86,7 @@ def get_ent_data(ent: ET.Element, data: Dict) -> Dict:
             data[key] = value
     return data
 
+# Used in parse_tsv
 def get_name(row: List):
     first, middle, last, org = row[0], row[1], row[2], row[3]
     name, is_org = '', False
@@ -100,12 +104,14 @@ def get_name(row: List):
         name = last
     return name, is_org
 
+# Used in parse_tsv
 def get_zip(zip: str, zip4: str) -> str:
     if zip4:
         return f'{zip}-{zip4}'
     else:
         return zip
 
+# sort the dictionaries in data based on the value of the 'zip' key
 def sorted_data(data: List[Dict]):
     return sorted(data, key=sorting_key) 
 
@@ -133,10 +139,14 @@ def get_filedata_from_paths(path_list: List, sort_data: bool):
         all_data = sorted_data(all_data)
     return all_data
 
+# TODO: implement this
 def validate_file_extensions(paths: List[str]):
     return paths
 
-def parse_paths(input_str: str) -> List[str]:
+def parse_paths(input_str: str, target_extensions: List[str]) -> List[str]:
+    # dynamically define the regex pattern based on the target extensions
+    pattern = r'(?<=\.(?:' + '|'.join(target_extensions) + r')),?\s*(?=\w)'
+    
     try:  # check if input string is in list format
         paths = ast.literal_eval(input_str)
         if not isinstance(paths, list):
@@ -144,11 +154,13 @@ def parse_paths(input_str: str) -> List[str]:
         paths_with_brackets = ast.literal_eval('['+input_str+']', list)
         if not isinstance(paths_with_brackets, list):
             raise ValueError
-    except (SyntaxError, ValueError):  # else split the string manually
-        pattern = r'(?<=\.(?:xml|tsv|txt)),?\s*(?=\w)'  # TODO document this
+    except (SyntaxError, ValueError) as e:
+        sys.stderr.write(str(e))
+        # if not in list format, split by regex pattern
+        # TODO document this
         paths = re.split(pattern, input_str) 
     # Strip extraneous characters that the user may have typed
-    # use set comprehension so don't end up w/ duplicate filepaths
+    # Set comprehension -> no duplicate filepaths
     paths = list({p.strip("', []") for p in paths if p.strip()})
     # paths = validate_file_extensions(paths)
     return paths
@@ -156,9 +168,8 @@ def parse_paths(input_str: str) -> List[str]:
 if __name__ == "__main__":
     # main()
     parser = argparse.ArgumentParser(description='Process files from paths.')
-    # parser.add_argument('--help', action='help', help='Show this help message and exit')
     input_str = input("Please enter a list of path(s): ")
-    paths = parse_paths(input_str)
+    paths = parse_paths(input_str, target_extensions)
     # validate_file_extensions(paths)
     filedata = get_filedata_from_paths(path_list=paths, sort_data=True)
     print(json.dumps(filedata, indent=2))
