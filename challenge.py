@@ -15,7 +15,6 @@ from typing import List, Dict
 # Limit all lines to a maximum of 79 characters.
 # docstrings or comments limit to 72 characters.
 # 4 space indentation
-target_extensions = ['xml', 'tsv', 'txt']
 tsv_columns = ['name', 'organization', 'street', 'city', 'state', 'county',
                'zip'
 ]
@@ -168,6 +167,7 @@ def parse_paths(input_str: str, target_extensions: List[str]) -> List[str]:
 if __name__ == "__main__":
     # main()
     parser = argparse.ArgumentParser(description='Process files from paths.')
+    target_extensions = ['xml', 'tsv', 'txt']
     input_str = input("Please enter a list of path(s): ")
     paths = parse_paths(input_str, target_extensions)
     # validate_file_extensions(paths)

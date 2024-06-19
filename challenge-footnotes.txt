@@ -3,4 +3,35 @@ This file contains additional comments/thoughts/definitions about logic used in 
 A line in challenge.py with a comment of the form '# [index]' indicates that there 
 is more information about it here (in challenge-footnotes.txt)
 
-[1] 
+[1]
+
+Regular Expressions in parse_txt()
+# for extracting different parts of the address
+address_pattern = r'(?P<name>.+)\n(?P<street>.+)\n(?:\n?(?P<county>[A-Z\s]+) COUNTY\n)?(?P<city>[^\d\n]+),\s*(?P<state>[A-Za-z]+),?\s*(?P<zip>\d{5}(?:-\d{4})?)'
+RE elements of address_pattern:
+1. '(?P<name>.+)': 
+  1a. '?P<name>': define group w/ name='name', this group will match:
+  1b. '.+': dot -> the name group will match all characters; plus sign -> as many characters as we want?
+        arbitrary N = number of characters in each person's name (N > 0)
+        i.e. instead of writing '(.....)' (5 dots) or '(..........)' (10 dots)
+        the RE '.+' will add/match as many dots as necessary, in this case (N dots)
+1n. '\n': (first line done) if matched a new line then we reached end of person's 
+          name and can proceed to the next line to get next property 
+2. '(?P<street>.+)': see 1
+2n. '\n': (second line done, move to next) 
+3. '(?P<city>[^\d\n]+)': 
+  3a. '?P<city>': define group w/ name='city'
+  3b. '[^\d\n]+': set = {'^', '\d', '\n'} set with first element='^' -> 
+      group will match all characters EXCEPT digits (represented by \d) 
+      and newlines (represented by \n). plus sign -> arbitrary length
+4. ',?': match 0 or 1 repetitions of ','
+5. '\s*': '*' -> match 0 or more of preceding RE, which is \s (any whitespace character)
+6. '?P<state>[A-Za-z]+':
+  6a. '?P<state>': define group w/ name='state', this group will match:
+  6b. '[A-Za-z]+': set = {'A-Z', 'a-z'} followed by plus sign ->
+       match arbitrary number of alphabetical characters (upper and lower)
+7. '(?P<zip>\d{5}(?:-\d{4})?)':
+  7a. '?P<zip>': define group w/ name='zip', this group will match:
+  7b. '\d{5}': match exactly 5 digits (i.e. the first 5 digits of a zip code)
+  7c. '(?:-\d{4})?': subgroup, followed by ? -> match 0 or 1 of the subgroup
+      there is a dash followed by exactly 4 digits
